@@ -51,23 +51,15 @@ The team created various charts to gain a better understanding of the data, such
       <img src="Resources/Images/BoxPlot_Weight.png" alt="Weight Box & Whisker" width="400" height="auto">
 
 ### Created buckets
-The team bucketed the `Age`, `Weight`, and `Height` data, then created charts of the bucketed groups to gain a better visualization of the fighters' stats.
+The team bucketed the `Age` and `Height` data, then created charts of the bucketed groups to gain a better visualization of the fighters' stats.
 
-- `R_Age` Bucket
+- Age Bucket
 
-  <img src="Resources/Images/Bar_RAge_Buckets.png" alt="R_Age Bucket" width="400" height="auto">
+  <img src="Resources/Images/BarPlot_Age_Bucket.png" alt="Age Bucket" width="400" height="auto">
 
-- `B_Age` Bucket
+- Height Bucket
 
-  <img src="Resources/Images/Bar_BAge_Buckets.png" alt="B_Age Bucket" width="400" height="auto">
-
-- `R_Height` Bucket
-
-  <img src="Resources/Images/Bar_RHeight_Buckets.png" alt="R_Height Bucket" width="400" height="auto">
-
-- `B_Height` Bucket
-
-  <img src="Resources/Images/Bar_BHeight_Buckets.png" alt="B_Height Bucket" width="400" height="auto">
+  <img src="Resources/Images/BarPlot_Height_Bucket.png" alt="Age Bucket" width="400" height="auto">
 
 ## Database Integration
 The team created a database in pgAdmin, which contained the following 4 tables:
