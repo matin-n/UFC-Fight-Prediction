@@ -4,7 +4,7 @@
 #   - 'legacy': Serialize DataFrames using Streamlit's custom format. Slow but battle-tested.
 #   - 'arrow': Serialize DataFrames using Apache Arrow. Much faster and versatile.
 # Default: "arrow"
-dataFrameSerialization = "legacy"
+# dataFrameSerialization = "legacy"
 
 [browser]
 # Whether to send usage statistics to Streamlit.

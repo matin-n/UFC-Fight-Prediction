@@ -1,63 +1,37 @@
 import os
 import numpy as np
 import pandas as pd
-import psycopg2
 from joblib import load
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import streamlit as st
 
-# Initialize connection.
-# Uses st.experimental_singleton to only run once.
-@st.experimental_singleton
-def init_connection():
-    return psycopg2.connect(**st.secrets["postgres"])
-
-
-conn = init_connection()
-
-# Perform query; defaults to grabbing the ufc_table.
-# Uses st.experimental_memo to only rerun when the query changes or after 10 min.
-@st.experimental_memo(ttl=600)
-def load_data(query="SELECT * FROM ufc_table LIMIT 10"):
-    with conn.cursor() as cur:
-        cur.execute(query)
-        rows = cur.fetchall()
-        columns = [desc[0] for desc in cur.description]
-        return pd.DataFrame(rows, columns=columns).fillna(np.nan)
-
-
-# Load model.
-# TODO: Add other classifiers.
-def load_model(classifier="../Resources/clf.joblib"):
-    return load(os.path.join(classifier))
-
-
-# Predict who wins the fight.
-def predict(df):
-    # If dataframe column contains Winner then drop it
-    # if "Winner" in df.columns:
-    #    df = df.drop(columns=["Winner"])
-    return clf.predict(df), clf.predict_proba(df)
-
-
-# Create column with fight matchup.
-def create_fight_matchup(df):
-    df["Fight_Matchup"] = df["B_Name"] + " vs. " + df["R_Name"]
+# Load Scraped Data 
+def load_data(data="Resources/train_preprocessed.joblib"):
+    df = load(os.path.join(data)) 
+    # Return dataframe
     return df
 
+# Load Machine Learning Model
+def load_model(classifier="Resources/Models/clf.joblib"):   
+    return load(os.path.join(classifier))
 
-# Load data from database.
+# Predict who wins the fight.
+def predict(df):    
+    return clf.predict(df), clf.predict_proba(df)
+
+# Load dataframe that contains fight matchups and results
 ufc_df = load_data()
-ufc_df = create_fight_matchup(ufc_df)
 
-fighter_agg_stats = load_data(query="SELECT * FROM fighter_agg_stats")
+# Dataframe for charts
+chart_df = ufc_df[["R_Age_Bucket", "B_Age_Bucket", "B_Height_Bucket", "R_Height_Bucket", "B_Stance", "R_Stance", "Weight_Class", "Winner"]]
 
-chart_df = load_data(
-    'SELECT "R_Age_Bucket", "B_Age_Bucket", "B_Height_Bucket", "R_Height_Bucket", "B_Stance", "R_Stance", "Weight_Class", "Winner" FROM ufc_table'
-)
-# Load Model
+# Load dataframe that contains individual fighter stats
+fighter_agg_stats = load_data(data="Resources/fighter_stats.joblib")
+
+# Load Machine Learning Model
 clf = load_model()
+
 
 # App Layout
 # ------------------------- #
@@ -82,43 +56,48 @@ with st.sidebar:
     st.sidebar.subheader("Prediction Options")
     data_selection = st.sidebar.selectbox(
         "Data Selection",
-        ["Upcoming Fights", "Fighter vs. Fighter", "Create your own fighter",],
+        ["Upcoming Fights", 
+        "Fighter vs. Fighter", 
+        # "Create Your Own Fighter",
+        ],
     )
 
     # If user selected "Upcoming Fights" then allow user to pick and predict a upcoming fight.
     if data_selection == "Upcoming Fights":
         upcoming_fight_matchup = st.sidebar.selectbox(
-            "Upcoming Fights", ufc_df["Fight_Matchup"],
+            "Upcoming Fights", ufc_df[ufc_df["Event_Date"] >= pd.to_datetime("2022-03-18")]["Matchup"], # TODO: scrape upcoming events
         )
     elif data_selection == "Fighter vs. Fighter":
         # Fighter vs. Fighter
         blue_fighter = st.sidebar.selectbox(
-            "Blue Fighter", fighter_agg_stats["Name"].unique()
+            "Blue Fighter", fighter_agg_stats["Name"]
         )
         red_fighter = st.sidebar.selectbox(
-            "Red Fighter", fighter_agg_stats["Name"].unique()
+            "Red Fighter", fighter_agg_stats["Name"]
         )
-    elif data_selection == "Create your own fighter":
-        # TODO: Create your own fighter
-        # I am testing the different Streamlit widgets:
-        st.sidebar.subheader("First Fighter")
-        red_fighter_age_2 = st.sidebar.number_input(
-            "Insert age 1", min_value=18, max_value=75, value=18
-        )
-        red_fighter_age = st.sidebar.slider("Fighter 1 Age", 18, 75, 25)
-        red_fighter_weight = st.sidebar.slider("Fighter 1 Weight (lb)", 115, 265, 150)
-        red_fighter_stance = st.sidebar.selectbox(
-            "Fighter 1 Stance", ufc_df["R_Stance"].head(5)
-        )
-        st.sidebar.subheader("Second Fighter")
-        blue_fighter_age_2 = st.sidebar.number_input(
-            "Insert age 2", min_value=18, max_value=75, value=18
-        )
-        blue_fighter_age = st.sidebar.slider("Fighter 2 Age", 18, 75, 25)
-        blue_fighter_weight = st.sidebar.slider("Fighter 2 Weight (lb)", 115, 265, 150)
-        blue_fighter_stance = st.sidebar.selectbox(
-            "Fighter 2 Stance", ufc_df["R_Stance"].head(5)
-        )
+
+    # elif data_selection == "Create Your Own Fighter":
+    #     # TODO: Create your own fighter
+    #     # I am testing the different Streamlit widgets:
+    #     st.sidebar.subheader("First Fighter")
+    #     red_fighter_age_2 = st.sidebar.number_input(
+    #         "Insert age 1", min_value=18, max_value=75, value=18
+    #     )
+    #     red_fighter_age = st.sidebar.slider("Fighter 1 Age", 18, 75, 25)
+    #     red_fighter_weight = st.sidebar.slider("Fighter 1 Weight (lb)", 115, 265, 150)
+    #     red_fighter_stance = st.sidebar.selectbox(
+    #         "Fighter 1 Stance", ufc_df["R_Stance"].head(5)
+    #     )
+    #     st.sidebar.subheader("Second Fighter")
+    #     blue_fighter_age_2 = st.sidebar.number_input(
+    #         "Insert age 2", min_value=18, max_value=75, value=18
+    #     )
+    #     blue_fighter_age = st.sidebar.slider("Fighter 2 Age", 18, 75, 25)
+    #     blue_fighter_weight = st.sidebar.slider("Fighter 2 Weight (lb)", 115, 265, 150)
+    #     blue_fighter_stance = st.sidebar.selectbox(
+    #         "Fighter 2 Stance", ufc_df["R_Stance"].head(5)
+    #     )
+
     # Visualization Selection
     st.sidebar.subheader("Visualizations")
     win_rate_by = st.sidebar.selectbox(
@@ -129,12 +108,9 @@ with st.sidebar:
 # Main page
 # ----- #
 st.title("UFC Fighter Prediction")
-# st.header("Predict Fight (Database)")
-
 
 # Model Selection
 # ----- #
-
 soft_voting_descrption = ">The idea behind the VotingClassifier is to combine conceptually different machine learning classifiers and use the average predicted probabilities (soft vote) to predict the class labels. Such a classifier can be useful for a set of equally well performing model in order to balance out their individual weaknesses. - [SciKit-learn](https://scikit-learn.org/stable/modules/ensemble.html#voting-classifier)"
 grading_boosting_description = ">GB builds an additive model in a forward stage-wise fashion; it allows for the optimization of arbitrary differentiable loss functions. In each stage `n_classes_` regression trees are fit on the negative gradient of the binomial or multinomial deviance loss function. Binary classification is a special case where only a single regression tree is induced. - [SciKit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.GradientBoostingClassifier.html)"
 random_forest_descrption = ">A random forest is a meta estimator that fits a number of decision tree classifiers on various sub-samples of the dataset and uses averaging to improve the predictive accuracy and control over-fitting. The sub-sample size is controlled with the `max_samples` parameter if `bootstrap=True` (default), otherwise the whole dataset is used to build each tree. - [SciKit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html)"
@@ -143,22 +119,22 @@ svc_description = ">The implementation is based on libsvm. The fit time scales a
 XGBoost_description = ">XGBoost is an optimized distributed gradient boosting library designed to be highly efficient, flexible and portable. It implements machine learning algorithms under the Gradient Boosting framework. XGBoost provides a parallel tree boosting (also known as GBDT, GBM) that solve many data science problems in a fast and accurate way. [XGBoost](https://xgboost.readthedocs.io/en/stable/)"
 
 if model_selection == "VotingClassifier":
-    clf = load_model("../Resources/clf.joblib")
+    clf = load_model("Resources/Models/clf.joblib")
     st.markdown(soft_voting_descrption)
 elif model_selection == "Gradient Boosting":
-    clf = load_model("../Resources/gbc.joblib")
+    clf = load_model("Resources/Models/gbc.joblib")
     st.markdown(grading_boosting_description)
 elif model_selection == "Random Forest":
-    clf = load_model("../Resources/rfc.joblib")
+    clf = load_model("Resources/Models/rfc.joblib")
     st.markdown(random_forest_descrption)
 elif model_selection == "Neural Network (MLP)":
-    clf = load_model("../Resources/mlp.joblib")
+    clf = load_model("Resources/Models/mlp.joblib")
     st.markdown(mlp_description)
 elif model_selection == "C-Support Vector":
-    clf = load_model("../Resources/SVC.joblib")
+    clf = load_model("Resources/Models/SVC.joblib")
     st.markdown(svc_description)
 elif model_selection == "XGBoost":
-    clf = load_model("../Resources/xgb.joblib")
+    clf = load_model("Resources/Models/xgb.joblib")
     st.markdown(XGBoost_description)
 
 
@@ -166,7 +142,7 @@ elif model_selection == "XGBoost":
 if data_selection == "Upcoming Fights":
     st.header("Upcoming Fights")
 
-    fight_detail = ufc_df[ufc_df["Fight_Matchup"] == upcoming_fight_matchup]
+    fight_detail = ufc_df[ufc_df["Matchup"] == upcoming_fight_matchup]
     blue_name = fight_detail["B_Name"].iloc[0]
     blue_age = fight_detail["B_Age"].iloc[0]
     blue_height = fight_detail["B_Height"].iloc[0]
@@ -184,9 +160,9 @@ if data_selection == "Upcoming Fights":
     prediction, pred_proba = predict(fight_detail)
 
     # Display results of prediction, changing different formatting for each corner (red or blue)
-    if prediction == "Blue":
+    if prediction == 0:
         predicted_winner = blue_name
-    elif prediction == "Red":
+    elif prediction == 1:
         predicted_winner = red_name
 
     if predicted_winner == blue_name:
@@ -258,7 +234,7 @@ elif data_selection == "Fighter vs. Fighter":
     blue_career_takedown_accuracy = fighter_stats_blue["Career_Takedown_Accuracy"]
     blue_career_takedown_defence = fighter_stats_blue["Career_Takedown_Defence"]
     blue_career_submission_average = fighter_stats_blue["Career_Submission_Average"]
-    blue_knockdowns = fighter_stats_blue["Knockdowns"]
+    # blue_knockdowns = fighter_stats_blue["Knockdowns"]
 
     red_name = fighter_stats_red["Name"]
     red_age = fighter_stats_red["Age"]
@@ -283,7 +259,7 @@ elif data_selection == "Fighter vs. Fighter":
     red_career_takedown_accuracy = fighter_stats_red["Career_Takedown_Accuracy"]
     red_career_takedown_defence = fighter_stats_red["Career_Takedown_Defence"]
     red_career_submission_average = fighter_stats_red["Career_Submission_Average"]
-    red_knockdowns = fighter_stats_red["Knockdowns"]
+    # red_knockdowns = fighter_stats_red["Knockdowns"]
 
     fvf_df = pd.DataFrame(columns=ufc_df.columns)
     fvf_df["B_Name"] = blue_name
@@ -305,7 +281,7 @@ elif data_selection == "Fighter vs. Fighter":
     fvf_df["B_Career_Takedown_Accuracy"] = blue_career_takedown_accuracy
     fvf_df["B_Career_Takedown_Defence"] = blue_career_takedown_defence
     fvf_df["B_Career_Submission_Average"] = blue_career_submission_average
-    fvf_df["B_Knockdowns"] = blue_knockdowns
+    # fvf_df["B_Knockdowns"] = blue_knockdowns
 
     fvf_df["R_Name"] = red_name
     fvf_df["R_Age"] = red_age
@@ -326,15 +302,15 @@ elif data_selection == "Fighter vs. Fighter":
     fvf_df["R_Career_Takedown_Accuracy"] = red_career_takedown_accuracy
     fvf_df["R_Career_Takedown_Defence"] = red_career_takedown_defence
     fvf_df["R_Career_Submission_Average"] = red_career_submission_average
-    fvf_df["R_Knockdowns"] = red_knockdowns
+    # fvf_df["R_Knockdowns"] = red_knockdowns
 
     # Predict fight.
     prediction, pred_proba = predict(fvf_df)
 
     # Display results of prediction.
-    if prediction == "Blue":
+    if prediction == 1: # TODO: idk if this is 1 or 0
         predicted_winner = blue_name.iloc[0]
-    elif prediction == "Red":
+    elif prediction == 0:
         predicted_winner = red_name.iloc[0]
 
     if predicted_winner == blue_name.iloc[0]:
@@ -376,11 +352,11 @@ elif data_selection == "Fighter vs. Fighter":
     col2.write(f"Stance: {red_stance.iloc[0]}")
 
 
-elif data_selection == "Create your own fighter":
-    st.subheader("Create your own fighter")
-    # TODO: Predict fight.
-    # TODO: Display probability of prediction.
-    # TODO: Display statistics of selected fighter.
+# elif data_selection == "Create your own fighter":
+#     st.subheader("Create your own fighter")
+#     # TODO: Predict fight.
+#     # TODO: Display probability of prediction.
+#     # TODO: Display statistics of selected fighter.
 
 # Line break
 st.markdown("---")
@@ -391,13 +367,13 @@ st.markdown("---")
 if win_rate_by == "Age":
     st.header(f"Win Rate By {win_rate_by}")
     blue_wr_age = (
-        chart_df[chart_df.Winner == "Blue"]
+        chart_df[chart_df.Winner == 0]
         .groupby("B_Age_Bucket")
         .Winner.count()
         .reset_index()
     )
     red_wr_age = (
-        chart_df[chart_df.Winner == "Red"]
+        chart_df[chart_df.Winner == 1]
         .groupby("R_Age_Bucket")
         .Winner.count()
         .reset_index()
@@ -445,13 +421,13 @@ if win_rate_by == "Age":
 elif win_rate_by == "Height":
     st.header(f"Win Rate By {win_rate_by}")
     blue_wr_height = (
-        chart_df[chart_df.Winner == "Blue"]
+        chart_df[chart_df.Winner == 0]
         .groupby("B_Height_Bucket")
         .Winner.count()
         .reset_index()
     )
     red_wr_height = (
-        chart_df[chart_df.Winner == "Red"]
+        chart_df[chart_df.Winner == 1]
         .groupby("R_Height_Bucket")
         .Winner.count()
         .reset_index()
@@ -491,13 +467,13 @@ elif win_rate_by == "Height":
 elif win_rate_by == "Weight Class":
     st.header(f"Win Rate By {win_rate_by}")
     blue_wr_weight = (
-        chart_df[chart_df.Winner == "Blue"]
+        chart_df[chart_df.Winner == 0]
         .groupby("Weight_Class")
         .Winner.count()
         .reset_index()
     )
     red_wr_weight = (
-        chart_df[chart_df.Winner == "Red"]
+        chart_df[chart_df.Winner == 1]
         .groupby("Weight_Class")
         .Winner.count()
         .reset_index()
@@ -544,13 +520,13 @@ elif win_rate_by == "Stance":
     fig = make_subplots(rows=2, cols=1, specs=[[{"type": "pie"}], [{"type": "pie"}]])
 
     blue_wr_stance = (
-        chart_df[chart_df.Winner == "Blue"]
+        chart_df[chart_df.Winner == 0]
         .groupby("B_Stance")
         .Winner.count()
         .reset_index()
     )
     red_wr_stance = (
-        chart_df[chart_df.Winner == "Red"]
+        chart_df[chart_df.Winner == 1]
         .groupby("R_Stance")
         .Winner.count()
         .reset_index()
@@ -586,15 +562,3 @@ elif win_rate_by == "Stance":
     )
     fig.update_traces(marker=dict(line=dict(color="#000000", width=1.25)))
     st.plotly_chart(fig)
-
-
-# # Check if the original dataframe has the same results as database.
-# # ----- #
-# # Load DataFrame
-# ufc_df = load("../Resources/clean_scraped_data.joblib")
-# st.header("Predict Fight (saved DataFrame)")
-# # Predict first fight
-# fight_selection = ufc_df.iloc[[0]]
-# prediction, pred_proba = predict(fight_selection)
-# st.write(prediction)
-# st.write(pred_proba)
