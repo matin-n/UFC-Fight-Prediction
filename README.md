@@ -1,5 +1,7 @@
 # UFC Fight Analysis
 
+[Click here to view the live dashboard!](https://share.streamlit.io/matin-n/ufc-fight-prediction/main)
+
 ## Project Overview
 
 ### Selected topic
@@ -589,8 +591,6 @@ Subject to change, our interactive elements will include:
 - An ability for our users to create their own fighter by selecting values for key aggregated features to test a hypothetical fighter either again an established fighter or another hypothetical fighter. 
 
 In selecting these elements specifically, we are aiming to center our predictive model and keep the user-experience as streamlined we can. 
-
-You can view our deployed dashboard here: http://turtledashboard.ddns.net/
 
 ## Future State
 
