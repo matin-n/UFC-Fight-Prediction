@@ -35,31 +35,31 @@ The team created various charts to gain a better understanding of the data, such
 
 - Winner (Red vs. Blue)
 
-  <img src="Resources/Images/Pie_WinRate.png" alt="Pie Win Rate" width="400" height="auto">
+  <img src="Resources/Images/Pie_WinRate.png" alt="Pie Win Rate">
 
 - Box & Whisker Plots
     - Age
 
-      <img src="Resources/Images/BoxPlot_Age.png" alt="Age Box & Whisker" width="400" height="auto">
+      <img src="Resources/Images/BoxPlot_Age.png" alt="Age Box & Whisker" width="800" height="auto">
 
     - Height
 
-      <img src="Resources/Images/BoxPlot_Height.png" alt="Height Box & Whisker" width="400" height="auto">
+      <img src="Resources/Images/BoxPlot_Height.png" alt="Height Box & Whisker" width="800" height="auto">
 
     - Weight
 
-      <img src="Resources/Images/BoxPlot_Weight.png" alt="Weight Box & Whisker" width="400" height="auto">
+      <img src="Resources/Images/BoxPlot_Weight.png" alt="Weight Box & Whisker" width="800" height="auto">
 
 ### Created buckets
 The team bucketed the `Age` and `Height` data, then created charts of the bucketed groups to gain a better visualization of the fighters' stats.
 
 - Age Bucket
 
-  <img src="Resources/Images/BarPlot_Age_Bucket.png" alt="Age Bucket" width="400" height="auto">
+  <img src="Resources/Images/BarPlot_Age_Bucket.png" alt="Age Bucket">
 
 - Height Bucket
 
-  <img src="Resources/Images/BarPlot_Height_Bucket.png" alt="Age Bucket" width="400" height="auto">
+  <img src="Resources/Images/BarPlot_Height_Bucket.png" alt="Age Bucket">
 
 ## Database Integration
 The team created a database in pgAdmin, which contained the following 4 tables:
