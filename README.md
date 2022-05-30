@@ -28,7 +28,7 @@ The questions we hope to answer with the data include:
 The team attends a standing meeting daily from 6-7pm EST on Discord to discuss progress made on the project, and other project-related matters. The team also maintains constant communication as-needed via Discord chat. The team maintains meeting notes, scheduling, and organization in [Notion](https://fobordo.notion.site/Module-20-Final-Project-d827016db1854b4f860cc8e221d9ccd7).
 
 ## Data Exploration
-The team explored various sites for the most interesting and feasible dataset, and finally settled on [UFC Fight Data from Kaggle](Resources/data.csv). After exploring and cleaning the data, the team discovered several issues within the dataset, including mismatched values to some rows. The team decided the best course of action would be to scrape the data directly from the Kaggle dataset's source, which was [UFC Stats](https://ufcstats.com). The team developed a scraper to scrape data from the UFC Stats website into a [`new CSV file`](Resources/scraped_data.csv) to explore, clean, and preprocess for analysis.
+The team explored various sites for the most interesting and feasible dataset, and finally settled on [UFC Fight Data from Kaggle](Resources/scraped_data_kaggle.csv). After exploring and cleaning the data, the team discovered several issues within the dataset, including mismatched values to some rows. The team decided the best course of action would be to scrape the data directly from the Kaggle dataset's source, which was [UFC Stats](https://ufcstats.com). The team developed a scraper to scrape data from the UFC Stats website into a [`new CSV file`](Resources/scraped_data_ufcstats.csv) to explore, clean, and preprocess for analysis.
 
 ### Created charts
 The team created various charts to gain a better understanding of the data, such as the comparison between Red and Blue Winners, and Box & Whiskey Plots to identify outliers in the data.
@@ -82,7 +82,7 @@ The database tables were populated from within the `UFC_Final_Project.ipynb` Pyt
 
 During the preliminary data preprocessing phase of the project, the team performed the following actions to clean and transform the data as a preprocessing step for the machine learning model.
 
-1. **Imported [scraped data](Resources/scraped_data.csv) into a Pandas DataFrame**
+1. **Imported [scraped data](Resources/scraped_data_ufcstats.csv) into a Pandas DataFrame**
 
 2. **Dropped duplicate rows (fights)**
     - To ensure the scraped data did not contain duplicate rows (fights), duplicate rows were dropped using `drop_duplicates` based on the columns `Event_Date`, `B_Name`, and `R_Name`, where `Event_Date` contained the date of the fight, `B_Name` contained the name of the Blue fighter, and `R_Name` contained the name of the Red fighter.
@@ -612,7 +612,7 @@ Exploration/Transformation:
 
 - Source Code: [`UFC_Final_Project.ipynb`](UFC_Final_Project.ipynb)
 
-- Original Data: [`data.csv`](Resources/data.csv)
+- Original Data: [`scraped_data_kaggle.csv`](Resources/scraped_data_kaggle.csv)
     - Header Breakdown
         - `B` - Blue corner
         - `R` - Red corner
@@ -633,7 +633,7 @@ Exploration/Transformation:
             - `Blue` - Fighter in the blue corner won the fight.
             - `No contest` - No contest decisions in MMA are usually declared when an accidental illegal strike (the rules on which differ from each organization and state) causes the recipient of the blow to be unable to continue, that decision being made by the referee, doctor, the fighter or his corner.
 
-- Scraped Data: [`scraped_data.csv`](Resources/scraped_data.csv)
+- Scraped Data: [`scraped_data_ufcstats.csv`](Resources/scraped_data_ufcstats.csv)
     - New columns
       - `Height` - Fighter height (in.)
       - `Weight` - Fighter weight (lbs.)
